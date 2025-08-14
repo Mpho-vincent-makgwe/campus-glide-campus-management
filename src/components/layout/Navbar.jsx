@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Menu, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+
 const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);

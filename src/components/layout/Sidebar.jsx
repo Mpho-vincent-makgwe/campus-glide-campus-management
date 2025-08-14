@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, LogOut, LayoutDashboard, Share2, Building2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
+
 const Sidebar = () => {
   const [isCampusesOpen, setIsCampusesOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
