@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Menu, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
 
 const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -43,7 +41,7 @@ const Navbar = () => {
     );
   }
 
-  return (
+   return (
     <nav className="hidden lg:flex bg-white h-16 items-center justify-between px-6 fixed top-0 right-0 left-64 shadow z-50">
       <div className="w-1/3">
         <input
@@ -52,9 +50,7 @@ const Navbar = () => {
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-green-300 text-sm"
         />
       </div>
-
       <div className="flex items-center space-x-6">
-        <span className="text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         <button className="text-gray-600 hover:text-gray-800">?</button>
         <div className="flex items-center space-x-2">
           <img

@@ -1,9 +1,9 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
+import Layout from './components/Layout/Layout';
+import DashboardPage from './pages/DashboardPage';
 import Campuses from './pages/Campuses';
 import Referrals from './pages/Referrals';
-import Login from './pages/Login';
+import LoginPage from './pages/LoginPage';
 
 const router = createBrowserRouter([
   {
@@ -12,7 +12,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/dashboard',
-        element: <Dashboard />,
+        element: <DashboardPage />,
       },
       {
         path: '/campuses',
@@ -28,7 +28,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/login',
-        element: <Login />,
+        element: <LoginPage />,
       },
     ],
   },
