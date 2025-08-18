@@ -29,7 +29,7 @@ const Navbar = () => {
           </button>
           <div className="flex items-center space-x-2">
             <img
-              src="/src/assets/images/avatar.png"
+              src="/images/pp.png"
               alt="Ann Grob"
               width={32}
               height={32}
@@ -54,7 +54,7 @@ const Navbar = () => {
         <button className="text-gray-600 hover:text-gray-800">?</button>
         <div className="flex items-center space-x-2">
           <img
-            src="/src/assets/images/avatar.png"
+            src="/images/pp.png"
             alt="Ann Grob"
             width={32}
             height={32}

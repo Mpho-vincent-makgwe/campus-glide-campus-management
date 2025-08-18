@@ -1,9 +1,11 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+// src/router.js
+import { createBrowserRouter } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import DashboardPage from './pages/DashboardPage';
 import Campuses from './pages/Campuses';
 import Referrals from './pages/Referrals';
 import LoginPage from './pages/LoginPage';
+import CampusSettings from './pages/CampusSettings';
 
 const router = createBrowserRouter([
   {
@@ -19,8 +21,16 @@ const router = createBrowserRouter([
         element: <Campuses />,
       },
       {
-        path: '/campuses/new',
-        element: <div>Add New Campus</div>,
+        path: '/campuses/settings',
+        element: <CampusSettings />,
+      },
+      {
+        path: '/campuses/settings/:campusId',
+        element: <CampusSettings />,
+      },
+      {
+        path: '/campuses/settings/new',
+        element: <CampusSettings isNew={true} />,
       },
       {
         path: '/referrals',
