@@ -1,56 +1,47 @@
 // src/pages/CampusSettings.js
-import { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { CampusContext } from '../context/CampusContext';
+import { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { CampusContext } from "../context/CampusContext";
+import { FiSearch, FiUpload, FiMapPin } from "react-icons/fi";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 const CampusSettings = ({ isNew = false }) => {
   const { campusId } = useParams();
   const navigate = useNavigate();
   const { campuses, addCampus, updateCampus } = useContext(CampusContext);
-  const [activeTab, setActiveTab] = useState(isNew ? 'add' : 'configure');
+
+  const [activeTab, setActiveTab] = useState(isNew ? "add" : "configure");
   const [campusData, setCampusData] = useState({
-    id: '',
-    name: '',
-    code: '',
-    email: '',
-    phone: '',
-    description: '',
-    status: 'Active',
-    address: '',
-    scooters: 120,
-    lastActivity: '10 mins ago',
-    lastUpdated: '1 day ago by Admin',
-    geofence: []
+    id: "",
+    name: "",
+    code: "",
+    email: "",
+    phone: "",
+    description: "",
+    status: "Suspended",
+    address: "",
+    geofence: [],
+    location: [51.505, -0.09], // default map center
   });
 
   useEffect(() => {
     if (campusId && !isNew) {
-      const existingCampus = campuses.find(c => c.id === campusId);
+      const existingCampus = campuses.find((c) => c.id === campusId);
       if (existingCampus) {
         setCampusData(existingCampus);
-        setActiveTab('add');
+        setActiveTab("add");
       }
-    } else if (isNew) {
-      setCampusData({
-        id: '',
-        name: '',
-        code: '',
-        email: '',
-        phone: '',
-        description: '',
-        status: 'Active',
-        address: '',
-        scooters: 120,
-        lastActivity: '10 mins ago',
-        lastUpdated: '1 day ago by Admin',
-        geofence: []
-      });
     }
   }, [campusId, isNew, campuses]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCampusData(prev => ({ ...prev, [name]: value }));
+    setCampusData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleStatusChange = (status) => {
+    setCampusData((prev) => ({ ...prev, status }));
   };
 
   const handleSubmit = (e) => {
@@ -58,7 +49,6 @@ const CampusSettings = ({ isNew = false }) => {
     const campusToSave = {
       ...campusData,
       id: campusData.id || `campus-${Date.now()}`,
-      lastUpdated: `${new Date().toLocaleDateString()} by Admin`
     };
 
     if (campusId) {
@@ -66,42 +56,53 @@ const CampusSettings = ({ isNew = false }) => {
     } else {
       addCampus(campusToSave);
     }
-    navigate('/campuses/settings');
+    navigate("/campuses/settings");
+  };
+
+  // Handle Map Click to set marker
+  const LocationMarker = () => {
+    useMapEvents({
+      click(e) {
+        setCampusData((prev) => ({ ...prev, location: [e.latlng.lat, e.latlng.lng] }));
+      },
+    });
+    return campusData.location ? <Marker position={campusData.location} /> : null;
   };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-2">Settings - Add/Edit Campus</h1>
+      <h1 className="text-2xl font-bold mb-2">Add/Edit Campus</h1>
       <p className="text-gray-600 mb-6">Register and Configure Campuses</p>
 
-      <div className="flex space-x-4 mb-6">
+      {/* Tabs */}
+      <div className="flex mb-6 rounded-full overflow-hidden border">
         <button
-          onClick={() => setActiveTab('add')}
-          className={`flex-1 py-3 rounded text-lg font-medium ${
-            activeTab === 'add'
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-200 text-gray-800'
+          onClick={() => setActiveTab("add")}
+          className={`flex-1 py-3 text-lg font-medium ${
+            activeTab === "add"
+              ? "bg-black text-white"
+              : "bg-white text-gray-700"
           }`}
         >
-          {campusId ? 'Edit Campus' : 'Add New Campus'}
+          Add New Campus
         </button>
         <button
-          onClick={() => setActiveTab('configure')}
-          className={`flex-1 py-3 rounded text-lg font-medium ${
-            activeTab === 'configure'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-200 text-gray-800'
+          onClick={() => setActiveTab("configure")}
+          className={`flex-1 py-3 text-lg font-medium ${
+            activeTab === "configure"
+              ? "bg-green-500 text-white"
+              : "bg-white text-gray-700"
           }`}
         >
           Configure Existing Campus
         </button>
       </div>
 
-      {activeTab === 'add' ? (
+      {activeTab === "add" ? (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Campus Details</h2>
-          
           <form onSubmit={handleSubmit}>
+            {/* Campus Details */}
+            <h2 className="text-xl font-semibold mb-4">Campus Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
                 <label className="block text-sm font-medium mb-1">Campus Name</label>
@@ -115,7 +116,6 @@ const CampusSettings = ({ isNew = false }) => {
                   required
                 />
               </div>
-              
               <div>
                 <label className="block text-sm font-medium mb-1">Campus Code</label>
                 <input
@@ -124,11 +124,10 @@ const CampusSettings = ({ isNew = false }) => {
                   value={campusData.code}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
-                  placeholder="Enter Short unique identifier (e.g., UNILAQ, UI)"
+                  placeholder="Enter Short unique identifier (e.g., UNILAG, UI)"
                   required
                 />
               </div>
-              
               <div>
                 <label className="block text-sm font-medium mb-1">Campus Contact Email</label>
                 <input
@@ -141,7 +140,6 @@ const CampusSettings = ({ isNew = false }) => {
                   required
                 />
               </div>
-              
               <div>
                 <label className="block text-sm font-medium mb-1">Campus Phone Number</label>
                 <input
@@ -154,7 +152,6 @@ const CampusSettings = ({ isNew = false }) => {
                   required
                 />
               </div>
-              
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-1">Campus Description</label>
                 <textarea
@@ -166,108 +163,108 @@ const CampusSettings = ({ isNew = false }) => {
                   rows="3"
                 />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Campus Status</label>
-                <select
-                  name="status"
-                  value={campusData.status}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+              <div className="flex items-center space-x-6">
+                <label className="block text-sm font-medium">Campus Status</label>
+                <div className="flex items-center space-x-6">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={campusData.status === "Active"}
+                      onChange={() => handleStatusChange("Active")}
+                    />
+                    <span>Active</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={campusData.status === "Suspended"}
+                      onChange={() => handleStatusChange("Suspended")}
+                    />
+                    <span>Suspended</span>
+                  </label>
+                </div>
               </div>
+            </div>
 
+            {/* Campus Location & Geofence */}
+            <h2 className="text-xl font-semibold mb-4">Campus Location & Geofence</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-1">Number of Scooters</label>
+                <label className="block text-sm font-medium mb-1">Campus Address</label>
                 <input
-                  type="number"
-                  name="scooters"
-                  value={campusData.scooters}
+                  type="text"
+                  name="address"
+                  value={campusData.address}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                  min="0"
+                  className="w-full p-2 border rounded mb-6"
+                  placeholder="Enter main Address of Campus"
                   required
                 />
+
+                <h3 className="font-medium mb-2">Set Geofence Area</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Define the boundary for scooter operation. Use the picker to define your location or manually enter an address
+                </p>
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      className="w-full p-2 border rounded"
+                      placeholder={`Geofence Location ${i + 1}`}
+                      value={campusData.geofence[i] || ""}
+                      onChange={(e) =>
+                        setCampusData((prev) => {
+                          const updated = [...prev.geofence];
+                          updated[i] = e.target.value;
+                          return { ...prev, geofence: updated };
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="font-medium mb-2">Upload GeoJSON</h3>
+                  <label className="flex items-center px-4 py-2 border rounded cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <FiUpload className="mr-2" /> Upload Here
+                    <input type="file" className="hidden" accept=".geojson" />
+                  </label>
+                </div>
+              </div>
+
+              {/* Map */}
+              <div className="relative h-80 w-full border rounded">
+                {/* Search bar */}
+                <div className="absolute top-2 left-2 right-2 z-10 flex items-center bg-white border rounded px-2 py-1 shadow">
+                  <FiSearch className="text-gray-500 mr-2" />
+                  <input
+                    type="text"
+                    placeholder="Enter Campus Location"
+                    className="flex-1 outline-none"
+                  />
+                </div>
+
+                <MapContainer
+                  center={campusData.location}
+                  zoom={13}
+                  scrollWheelZoom={false}
+                  className="h-full w-full rounded"
+                >
+                  <TileLayer
+                    attribution='&copy; OpenStreetMap contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationMarker />
+                </MapContainer>
               </div>
             </div>
 
-            <h2 className="text-xl font-semibold mb-4">Campus Location & Geofence</h2>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-1">Campus Address</label>
-              <input
-                type="text"
-                name="address"
-                value={campusData.address}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="Enter main Address of Campus"
-                required
-              />
-            </div>
-            
-            <div className="mb-8">
-              <h3 className="font-medium mb-2">Set Geofence Area</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Define the boundary for scooter operation. Use the poker to define your location or manually enter an address
-              </p>
-              
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  placeholder="Geofence Location 1"
-                  value={campusData.geofence[0] || ''}
-                  onChange={(e) => setCampusData(prev => ({
-                    ...prev,
-                    geofence: [e.target.value, prev.geofence[1], prev.geofence[2]]
-                  }))}
-                />
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  placeholder="Geofence Location 2"
-                  value={campusData.geofence[1] || ''}
-                  onChange={(e) => setCampusData(prev => ({
-                    ...prev,
-                    geofence: [prev.geofence[0], e.target.value, prev.geofence[2]]
-                  }))}
-                />
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded"
-                  placeholder="Geofence Location 3"
-                  value={campusData.geofence[2] || ''}
-                  onChange={(e) => setCampusData(prev => ({
-                    ...prev,
-                    geofence: [prev.geofence[0], prev.geofence[1], e.target.value]
-                  }))}
-                />
-              </div>
-            </div>
-            
-            <div className="mb-8">
-              <h3 className="font-medium mb-2">Upload GeoJSON</h3>
-              <input
-                type="file"
-                className="w-full p-2 border rounded"
-                accept=".geojson"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    console.log('GeoJSON file selected:', file);
-                  }
-                }}
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-4">
+            {/* Buttons */}
+            <div className="flex justify-end space-x-4 mt-8">
               <button
                 type="button"
-                onClick={() => navigate('/campuses/settings')}
+                onClick={() => navigate("/campuses/settings")}
                 className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
               >
                 Cancel
@@ -276,7 +273,7 @@ const CampusSettings = ({ isNew = false }) => {
                 type="submit"
                 className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
               >
-                {campusId ? 'Update Campus' : 'Add Campus'}
+                {campusId ? "Update Campus" : "Add Campus"}
               </button>
             </div>
           </form>
@@ -284,23 +281,8 @@ const CampusSettings = ({ isNew = false }) => {
       ) : (
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Registered Campuses</h2>
-          
-          {/* Search + Filter */}
-          <div className="flex items-center space-x-2 mb-6">
-            <input
-              type="text"
-              placeholder="User Email, Name or ID"
-              className="flex-1 p-2 border rounded"
-            />
-            <button className="bg-green-500 text-white px-4 py-2 rounded">
-              Search User
-            </button>
-            <button className="border px-4 py-2 rounded">All ▾</button>
-          </div>
-
-          {/* Campus List */}
           <div className="space-y-3">
-            {campuses.map(campus => (
+            {campuses.map((campus) => (
               <div
                 key={campus.id}
                 className="flex items-center justify-between bg-green-50 hover:bg-green-100 p-4 rounded-lg"
@@ -309,22 +291,24 @@ const CampusSettings = ({ isNew = false }) => {
                   <p className="font-medium">{campus.name}</p>
                   <p className="text-sm text-gray-600">{campus.code}</p>
                 </div>
-
                 <div className="w-24">
-                  <span className={`flex items-center text-sm px-2 py-1 rounded-full
-                    ${campus.status === 'Active'
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-red-100 text-red-600'}`}>
-                    <span className={`h-2 w-2 rounded-full mr-2 
-                      ${campus.status === 'Active' ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span
+                    className={`flex items-center text-sm px-2 py-1 rounded-full ${
+                      campus.status === "Active"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full mr-2 ${
+                        campus.status === "Active"
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
+                    />
                     {campus.status}
                   </span>
                 </div>
-
-                <div className="w-20 text-sm">{campus.scooters}</div>
-                <div className="w-32 text-sm">{campus.lastActivity}</div>
-                <div className="w-40 text-sm">{campus.lastUpdated}</div>
-
                 <div>
                   <button
                     onClick={() => navigate(`/campuses/settings/${campus.id}`)}
